@@ -195,13 +195,13 @@ export default function ArticleDetailPage() {
                                     <button
                                         className={cn(
                                             "px-2 py-5 text-sm font-bold border-b-2 transition-all duration-300 flex items-center gap-2",
-                                            viewMode === 'seo'
+                                            (viewMode as string) === 'seo'
                                                 ? 'border-purple-600 text-purple-600'
                                                 : 'border-transparent text-gray-400 hover:text-purple-600'
                                         )}
                                         onClick={() => setViewMode('seo')}
                                     >
-                                        <Sliders size={16} className={cn(viewMode === 'seo' ? 'text-purple-500' : 'text-gray-300')} />
+                                        <Sliders size={16} className={cn((viewMode as string) === 'seo' ? 'text-purple-500' : 'text-gray-300')} />
                                         SEO
                                     </button>
                                 </div>
