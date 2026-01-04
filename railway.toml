@@ -1,14 +1,12 @@
-# Railway Configuration for Monorepo
 [build]
   builder = "NIXPACKS"
-  # Force look into the backend folder for build
-  rootDirectory = "backend"
+  # Force provider to be PHP
+  nixpacksPlan = { providers = ["php"] }
 
 [deploy]
-  # Start command that binds to the correct PORT
+  # Listen on 0.0.0.0 so Railway can reach it
   startCommand = "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT"
-  # Add healthcheck to ensure the 502 goes away once ready
   healthcheckPath = "/api/v1/articles"
   healthcheckTimeout = 100
   restartPolicyType = "ON_FAILURE"
-  numReplicas = 1
+
