@@ -114,10 +114,10 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                                 </div>
                                 <h3 className="font-bold text-gray-900">Optimization Checklist</h3>
                             </div>
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{analysis.checks.filter(c => c.status === 'pass').length} / {analysis.checks.length} PASSED</span>
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{analysis.checks.filter((c: any) => c.status === 'pass').length} / {analysis.checks.length} PASSED</span>
                         </div>
                         <div className="divide-y divide-gray-50">
-                            {analysis.checks.map((check) => (
+                            {analysis.checks.map((check: any) => (
                                 <div key={check.id} className="p-6 flex items-start gap-5 hover:bg-gray-50/30 transition-colors group">
                                     <div className="mt-1 flex-shrink-0">
                                         {check.status === 'pass' && <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><CheckCircle size={14} strokeWidth={3} /></div>}
@@ -158,7 +158,7 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                                 </p>
 
                                 <div className="flex flex-wrap gap-2.5">
-                                    {gaps.map((gap, i) => (
+                                    {gaps.map((gap: any, i: number) => (
                                         <div key={i} className="group relative">
                                             <span className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-sm font-bold backdrop-blur-sm group-hover:bg-white group-hover:text-blue-600 transition-all cursor-default flex items-center gap-2">
                                                 <PlusIcon /> {gap.keyword}
@@ -213,7 +213,7 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                         <div className="p-6 max-h-[350px] overflow-y-auto custom-scrollbar">
                             <ul className="space-y-3 relative">
                                 {headings.length === 0 && <li className="text-gray-400 italic text-sm">No headings detected.</li>}
-                                {headings.map((h, i) => (
+                                {headings.map((h: any, i: number) => (
                                     <li key={h.id} className="text-sm text-gray-600 truncate flex items-center gap-3 group relative" style={{ paddingLeft: `${(h.level - 1) * 16}px` }}>
                                         {i !== headings.length - 1 && <div className="absolute left-[7px] top-6 bottom-[-12px] w-px bg-gray-100" style={{ left: `${(h.level - 1) * 16 + 7}px` }} />}
                                         <span className={`flex-shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded border ${h.level === 1 ? 'bg-purple-50 text-purple-700 border-purple-100' :
