@@ -169,18 +169,17 @@ async function getAIEnhancement(original, refs) {
 }
 
 
-const POLL_INTERVAL = 5000; // 5 seconds
-
-async function runService() {
-    console.log('🚀 SEO Enhancer Service Started (Continuous Mode - 5s polling)');
-    while (true) {
-        try {
-            await enhancePipeline();
-        } catch (error) {
-            console.error('💥 Critical Service Error:', error);
-        }
-        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+// ONE-TIME NUCLEAR MODE: Run once and exit
+async function runOnce() {
+    console.log('☢️ NUCLEAR MODE: One-time forced update starting...');
+    try {
+        await enhancePipeline();
+        console.log('✅ Nuclear update complete. Service will now exit.');
+        process.exit(0);
+    } catch (error) {
+        console.error('💥 Critical Error:', error);
+        process.exit(1);
     }
 }
 
-runService();
+runOnce();
