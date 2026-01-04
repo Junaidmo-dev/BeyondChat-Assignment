@@ -90,7 +90,14 @@ async function getSearchResults(query) {
 async function scrapeArticleContent(url) {
     try {
         if (url.includes('example.com')) return 'Mock content for demonstration purposes.';
-        const { data } = await axios.get(url, { timeout: 5000 });
+        const { data } = await axios.get(url, {
+            timeout: 5000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5'
+            }
+        });
         const $ = cheerio.load(data);
         $('script, style, nav, footer, header').remove();
         return $('p').text().substring(0, 20000);
