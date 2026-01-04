@@ -18,7 +18,11 @@ async function enhancePipeline() {
         // 1. Fetch articles needing enhancement
         const { data: response } = await axios.get(`${API_BASE_URL}/articles`);
         const articles = response.data || [];
-        const pendingArticles = articles.filter(a => !a.enhanced_version).slice(0, 2);
+        // Fetch articles that are either new OR have "short" (old/bad) content
+        const pendingArticles = articles.filter(a =>
+            !a.enhanced_version ||
+            (a.enhanced_version.content && a.enhanced_version.content.length < 2000)
+        ).slice(0, 2);
 
         if (pendingArticles.length === 0) {
             console.log('✅ No pending articles found.');
