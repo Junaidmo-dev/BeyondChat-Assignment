@@ -18,11 +18,24 @@ async function enhancePipeline() {
         // 1. Fetch articles needing enhancement
         const { data: response } = await axios.get(`${API_BASE_URL}/articles`);
         const articles = response.data || [];
-        // Fetch articles that are either new OR have "short" (old/bad) content
-        const pendingArticles = articles.filter(a =>
-            !a.enhanced_version ||
-            (a.enhanced_version.content && a.enhanced_version.content.length < 2000)
-        ).slice(0, 2);
+        // Fetch articles that are either new OR have "short" content (less than 8000 chars / ~1200 words)
+        const pendingArticles = articles.filter(a => {
+            if (!a.enhanced_version) return true;
+
+            let content = "";
+            // Handle case where enhanced_version is returned as a string by Laravel
+            if (typeof a.enhanced_version === 'string') {
+                try {
+                    const parsed = JSON.parse(a.enhanced_version);
+                    content = parsed.content || "";
+                } catch (e) { content = ""; }
+            } else {
+                content = a.enhanced_version.content || "";
+            }
+
+            // Force redo if content is too short (bad quality)
+            return content.length < 8000;
+        }).slice(0, 2);
 
         if (pendingArticles.length === 0) {
             console.log('✅ No pending articles found.');
