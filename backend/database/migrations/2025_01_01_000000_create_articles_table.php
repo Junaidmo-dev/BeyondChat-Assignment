@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('status', ['draft', 'published'])->default('draft');
             $table->json('tags')->nullable();
             $table->integer('views')->default(0);
+            $table->string('read_time')->nullable();
             
             // Enhanced version stored as JSON for simplicity, or could be separate table
             // We'll store it here to simplify the query

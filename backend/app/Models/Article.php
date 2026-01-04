@@ -21,6 +21,7 @@ class Article extends Model
         'status',
         'tags',
         'views',
+        'read_time',
         'enhanced_version',
     ];
 
