@@ -1,12 +1,12 @@
 [build]
   builder = "NIXPACKS"
-  # Force provider to be PHP
-  nixpacksPlan = { providers = ["php"] }
+  # Watch only the backend directory
+  watchPatterns = ["backend/**"]
 
 [deploy]
-  # Listen on 0.0.0.0 so Railway can reach it
-  startCommand = "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT"
   healthcheckPath = "/api/v1/articles"
-  healthcheckTimeout = 100
+  healthcheckTimeout = 120
   restartPolicyType = "ON_FAILURE"
+  numReplicas = 1
+
 
