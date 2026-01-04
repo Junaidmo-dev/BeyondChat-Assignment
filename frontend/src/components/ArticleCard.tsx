@@ -15,7 +15,8 @@ export default function ArticleCard({ article, onEnhance }: { article: Article, 
 
         setIsEnhancing(true);
         try {
-            const res = await fetch(`http://127.0.0.1:8000/api/v1/articles/${article.id}/enhance`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+            const res = await fetch(`${apiUrl}/articles/${article.id}/enhance`, {
                 method: 'POST'
             });
             if (res.ok) {
