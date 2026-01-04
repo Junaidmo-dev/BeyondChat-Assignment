@@ -31,6 +31,25 @@ async function enhancePipeline() {
         for (const article of pendingArticles) {
             console.log(`\n📄 Processing: "${article.title}"`);
 
+            // 1.5 Scrape Original Content from Source Code
+            let originalContent = article.content;
+            if (article.original_url && !article.original_url.includes('example.com')) {
+                console.log(`📥 Scraping original source: ${article.original_url}`);
+                const scrapedOriginal = await scrapeArticleContent(article.original_url);
+
+                if (scrapedOriginal) {
+                    console.log(`✅ Scraped ${scrapedOriginal.length} chars from original URL.`);
+                    originalContent = scrapedOriginal;
+
+                    // Update the "Original" content in DB
+                    await axios.put(`${API_BASE_URL}/articles/${article.id}`, {
+                        content: originalContent
+                    });
+                } else {
+                    console.log('⚠️ Failed to scrape original URL. Using seed content.');
+                }
+            }
+
             // 2. Search Google (via Serper or Mock)
             const searchResults = await getSearchResults(article.title);
             console.log(`🔍 Found ${searchResults.length} relevant external sources.`);
@@ -56,7 +75,7 @@ async function enhancePipeline() {
 
             // 4. Call LLM (Gemini) for SEO Enhancement
             console.log('🤖 Enhancing content with Gemini AI...');
-            const enhancedData = await getAIEnhancement(article.content, references);
+            const enhancedData = await getAIEnhancement(originalContent, references);
 
             // 5. Publish back to API
             if (enhancedData) {

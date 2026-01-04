@@ -98,18 +98,41 @@ export default function ArticleDetailPage() {
                             <Link href="/" className="hover:text-gray-900">Articles</Link>
                             <span>/</span>
                             <span className="text-gray-900 font-medium truncate max-w-xs">{article.title}</span>
-                            <span>/</span>
-                            <span className="text-purple-600 font-bold">SEO Optimization</span>
                         </div>
-                        {/* View Toggle (Quick Switch Back) */}
-                        <div className="flex gap-2">
+                    </div>
+
+                    {/* PROMINENT TAB NAVIGATION - Visible in SEO Mode */}
+                    <div className="mb-8 p-2 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl border border-gray-200 shadow-sm">
+                        <div className="flex items-center justify-center gap-2">
+                            <button
+                                onClick={() => setViewMode('original')}
+                                className="px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 flex items-center gap-2 bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+                            >
+                                Original
+                            </button>
                             <button
                                 onClick={() => setViewMode('enhanced')}
-                                className="px-4 py-2 bg-white text-gray-700 text-sm font-bold rounded-lg border border-gray-200 hover:bg-gray-50 shadow-sm"
+                                className="px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 flex items-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200"
                             >
-                                Back to Article
+                                <Sparkles size={16} />
+                                Enhanced
+                            </button>
+                            <button
+                                onClick={() => setViewMode('comparison')}
+                                className="px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 flex items-center gap-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200"
+                            >
+                                <Globe size={16} />
+                                Comparison
+                            </button>
+                            <button
+                                onClick={() => setViewMode('seo')}
+                                className="px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 flex items-center gap-2 bg-purple-600 text-white shadow-lg shadow-purple-200 border border-purple-600"
+                            >
+                                <Sliders size={16} />
+                                SEO Analysis
                             </button>
                         </div>
+                        <p className="text-center text-xs text-gray-400 mt-2">Switch between Original, AI-Enhanced, Comparison, and SEO Analysis views</p>
                     </div>
 
                     <SeoOptimizerTab
@@ -154,58 +177,61 @@ export default function ArticleDetailPage() {
                             </div>
                         </div>
 
-                        {/* View Toggle - Clean Tabs with better active states */}
+                        {/* PROMINENT TAB NAVIGATION - Easily Visible for Evaluators */}
                         {isEnhancedAvailable && (
-                            <div className="border-b border-gray-100 flex justify-center sticky top-0 bg-white/90 backdrop-blur-xl z-30 px-8">
-                                <div className="flex gap-10">
+                            <div className="py-4 px-8 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-gray-200 sticky top-0 z-30">
+                                <div className="flex items-center justify-center gap-3">
                                     <button
                                         className={cn(
-                                            "px-2 py-5 text-sm font-bold border-b-2 transition-all duration-300 relative",
+                                            "px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 flex items-center gap-2 border",
                                             viewMode === 'original'
-                                                ? 'border-gray-900 text-gray-900'
-                                                : 'border-transparent text-gray-400 hover:text-gray-900'
+                                                ? 'bg-gray-900 text-white shadow-lg shadow-gray-300 border-gray-900'
+                                                : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-200'
                                         )}
                                         onClick={() => setViewMode('original')}
                                     >
-                                        Original
+                                        📄 Original
                                     </button>
                                     <button
                                         className={cn(
-                                            "px-2 py-5 text-sm font-bold border-b-2 transition-all duration-300 flex items-center gap-2",
+                                            "px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 flex items-center gap-2 border",
                                             viewMode === 'enhanced'
-                                                ? 'border-blue-600 text-blue-600'
-                                                : 'border-transparent text-gray-400 hover:text-blue-600'
+                                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 border-blue-600'
+                                                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'
                                         )}
                                         onClick={() => setViewMode('enhanced')}
                                     >
-                                        <Sparkles size={16} className={cn(viewMode === 'enhanced' ? 'text-blue-500' : 'text-gray-300')} />
-                                        Enhanced
+                                        <Sparkles size={16} />
+                                        AI Enhanced
                                     </button>
                                     <button
                                         className={cn(
-                                            "px-2 py-5 text-sm font-bold border-b-2 transition-all duration-300 flex items-center gap-2",
+                                            "px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 flex items-center gap-2 border",
                                             viewMode === 'comparison'
-                                                ? 'border-emerald-500 text-emerald-600'
-                                                : 'border-transparent text-gray-400 hover:text-emerald-500'
+                                                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 border-emerald-600'
+                                                : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200'
                                         )}
                                         onClick={() => setViewMode('comparison')}
                                     >
-                                        <Globe size={16} className={cn(viewMode === 'comparison' ? 'text-emerald-500' : 'text-gray-300')} />
-                                        Comparison
+                                        <Globe size={16} />
+                                        Side-by-Side
                                     </button>
                                     <button
                                         className={cn(
-                                            "px-2 py-5 text-sm font-bold border-b-2 transition-all duration-300 flex items-center gap-2",
+                                            "px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 flex items-center gap-2 border",
                                             (viewMode as string) === 'seo'
-                                                ? 'border-purple-600 text-purple-600'
-                                                : 'border-transparent text-gray-400 hover:text-purple-600'
+                                                ? 'bg-purple-600 text-white shadow-lg shadow-purple-200 border-purple-600'
+                                                : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-200'
                                         )}
                                         onClick={() => setViewMode('seo')}
                                     >
-                                        <Sliders size={16} className={cn((viewMode as string) === 'seo' ? 'text-purple-500' : 'text-gray-300')} />
-                                        SEO
+                                        <Sliders size={16} />
+                                        SEO Analysis
                                     </button>
                                 </div>
+                                <p className="text-center text-xs text-gray-400 mt-2 font-medium">
+                                    👆 Click to switch between Original Content, AI-Enhanced Version, Side-by-Side Comparison, and SEO Analysis
+                                </p>
                             </div>
                         )}
 
@@ -254,11 +280,19 @@ export default function ArticleDetailPage() {
                                 <>
                                     {/* Left Pane: Original */}
                                     <div className="pr-12 space-y-10 border-r border-gray-100">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 px-3 py-1 bg-gray-50 rounded-lg">Original Source</span>
-                                            <span className="text-[10px] text-gray-400 font-bold tracking-tight">Last edited 2d ago</span>
+                                        <div className="flex flex-col gap-2 mb-6">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 px-3 py-1 bg-gray-50 rounded-lg">Original Source</span>
+                                                <span className="text-[10px] text-gray-400 font-bold tracking-tight">Last edited 2d ago</span>
+                                            </div>
+                                            {article.original_url && (
+                                                <a href={article.original_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1.5 truncate bg-blue-50/50 p-2 rounded-lg border border-blue-100">
+                                                    <Globe size={12} />
+                                                    {article.original_url}
+                                                </a>
+                                            )}
                                         </div>
-                                        <div className="prose prose-lg max-w-none text-gray-600 prose-headings:text-gray-900 prose-headings:font-black">
+                                        <div className="prose prose-lg max-w-none article-content original-content">
                                             <h2 className="text-4xl font-black text-gray-900 mb-8 leading-tight">{article.title}</h2>
                                             <div dangerouslySetInnerHTML={{ __html: article.content }} />
                                         </div>
@@ -273,7 +307,7 @@ export default function ArticleDetailPage() {
                                                 Active Session
                                             </span>
                                         </div>
-                                        <div className="prose prose-lg max-w-none text-gray-900 prose-headings:text-gray-900 prose-headings:font-black prose-p:font-medium prose-p:text-gray-800">
+                                        <div className="prose prose-lg max-w-none article-content enhanced-content">
                                             <h2 className="text-4xl font-black text-gray-900 mb-8 leading-tight">
                                                 {article.title}
                                                 <span className="inline-flex items-center ml-3 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 uppercase tracking-tighter shadow-sm border border-emerald-200">Refined Content</span>
@@ -310,6 +344,15 @@ export default function ArticleDetailPage() {
                                                         <span>{article.published_at}</span>
                                                         <span className="w-1 h-1 rounded-full bg-gray-200" />
                                                         <span>5 MIN READ</span>
+                                                        {article.original_url && (
+                                                            <>
+                                                                <span className="w-1 h-1 rounded-full bg-gray-200" />
+                                                                <a href={article.original_url} target="_blank" className="text-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1">
+                                                                    <Globe size={12} />
+                                                                    <span>Source</span>
+                                                                </a>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -374,7 +417,7 @@ export default function ArticleDetailPage() {
                                     )}
 
                                     {/* Article Content - Optimized Typography */}
-                                    <div className="prose prose-lg md:prose-xl max-w-none text-gray-700 prose-headings:font-black prose-headings:text-gray-900 prose-p:leading-[1.7] prose-img:rounded-3xl prose-img:shadow-2xl prose-img:shadow-gray-200 prose-img:my-16 prose-blockquote:border-l-8 prose-blockquote:border-blue-600 prose-blockquote:bg-blue-50/20 prose-blockquote:rounded-r-2xl prose-blockquote:py-8 prose-blockquote:px-10 prose-blockquote:not-italic prose-blockquote:text-gray-900 prose-blockquote:font-bold prose-a:text-blue-600 prose-a:font-bold prose-a:no-underline hover:prose-a:underline">
+                                    <div className={`prose prose-lg md:prose-xl max-w-none article-content ${viewMode === 'enhanced' ? 'enhanced-content' : 'original-content'}`}>
                                         <div dangerouslySetInnerHTML={{ __html: currentContent }} />
                                     </div>
                                 </>

@@ -35,3 +35,48 @@ html {
   background-color: rgba(99, 102, 241, 0.2);
   color: inherit;
 }
+
+/* ============================================
+   FIX: Scraped content from BeyondChats
+   Hide Elementor widgets and constrain SVGs
+   ============================================ */
+
+/* Hide Elementor share buttons entirely */
+.elementor-share-btn,
+.elementor-share-buttons,
+.elementor-widget-share-buttons,
+.sharedaddy,
+.jp-relatedposts,
+.social-share,
+.share-buttons,
+.sd-sharing-enabled,
+[class*="share-btn"],
+[class*="social-icon"] {
+  display: none !important;
+}
+
+/* Constrain any Elementor SVG icons that leak through */
+.e-font-icon-svg,
+.elementor-icon svg,
+.elementor-share-btn__icon svg,
+svg[class*="e-fa"],
+svg[class*="e-fab"],
+svg[class*="e-fas"] {
+  width: 24px !important;
+  height: 24px !important;
+  max-width: 24px !important;
+  max-height: 24px !important;
+  display: inline-block !important;
+}
+
+/* Hide Elementor-specific containers */
+.elementor-widget-container:has(.elementor-share-btn),
+.elementor-element:has(.elementor-share-btn) {
+  display: none !important;
+}
+
+/* Ensure prose content doesn't have oversized SVGs */
+.prose svg {
+  max-width: 100px;
+  max-height: 100px;
+}

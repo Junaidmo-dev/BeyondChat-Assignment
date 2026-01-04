@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { analyzeSeo, extractHeadings, getKeywordGaps, generateSchema } from '@/lib/seoAnalysis';
-import { CheckCircle, AlertTriangle, XCircle, Search, FileCode, BarChart2, List, Clipboard, Download, Sparkles, ChevronRight, Share2 } from 'lucide-react';
+import { analyzeSeo, extractHeadings, getKeywordGaps, generateSchema, getImprovementSuggestions } from '@/lib/seoAnalysis';
+import { CheckCircle, AlertTriangle, XCircle, Search, FileCode, BarChart2, List, Clipboard, Download, Sparkles, Share2, TrendingUp, Clock, FileText, Link2, Image, Lightbulb, ArrowRight, Target, Zap } from 'lucide-react';
 
 interface SeoTabProps {
     article: any;
@@ -10,7 +10,6 @@ interface SeoTabProps {
 const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
 
     const analysis = useMemo(() => {
-        // Prefer AI-generated Analysis if available
         if (article.enhanced_version?.seo_analysis) {
             return {
                 score: article.enhanced_version.seo_analysis.score,
@@ -18,11 +17,13 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                     id: `ai-check-${i}`,
                     label: c.label,
                     status: c.status,
-                    message: c.message
-                }))
+                    message: c.message,
+                    suggestion: c.suggestion,
+                    impact: c.impact || 'medium'
+                })),
+                metrics: article.enhanced_version.seo_analysis.metrics || null
             };
         }
-        // Fallback to local analysis
         return analyzeSeo(content, article.title, article.enhanced_version?.references || []);
     }, [content, article.title, article.enhanced_version]);
 
@@ -35,14 +36,24 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
     }, [content, article.enhanced_version]);
 
     const schema = useMemo(() => generateSchema(article), [article]);
+    const suggestions = useMemo(() => getImprovementSuggestions(analysis.checks), [analysis.checks]);
 
     const [copied, setCopied] = useState(false);
+    const [activeSection, setActiveSection] = useState<'overview' | 'checklist' | 'suggestions'>('overview');
 
     const copySchema = () => {
         navigator.clipboard.writeText(JSON.stringify(schema, null, 2));
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
+
+    const getScoreColor = (score: number) => {
+        if (score >= 80) return { bg: 'bg-green-500', text: 'text-green-600', light: 'bg-green-50' };
+        if (score >= 60) return { bg: 'bg-yellow-500', text: 'text-yellow-600', light: 'bg-yellow-50' };
+        return { bg: 'bg-red-500', text: 'text-red-600', light: 'bg-red-50' };
+    };
+
+    const scoreColors = getScoreColor(analysis.score);
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -53,8 +64,8 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                         <Sparkles size={24} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black text-gray-900">AI Optimization Report</h2>
-                        <p className="text-sm font-medium text-purple-600">Generated for "{article.title}"</p>
+                        <h2 className="text-xl font-black text-gray-900">SEO Optimization Report</h2>
+                        <p className="text-sm font-medium text-purple-600">Detailed analysis for "{article.title.substring(0, 40)}..."</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -69,92 +80,275 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                 </div>
             </div>
 
+            {/* Section Tabs */}
+            <div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-fit">
+                {[
+                    { id: 'overview', label: 'Overview', icon: BarChart2 },
+                    { id: 'checklist', label: 'Full Checklist', icon: List },
+                    { id: 'suggestions', label: 'Improvements', icon: Lightbulb }
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveSection(tab.id as any)}
+                        className={`px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 ${activeSection === tab.id
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        <tab.icon size={16} />
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Scorecard & Checklist */}
+                {/* Left Column: Main Content */}
                 <div className="lg:col-span-2 space-y-8">
 
-                    {/* 1. Scorecard */}
+                    {/* Score Card with Metrics */}
                     <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-50 rounded-full translate-x-32 -translate-y-32 opacity-50 blur-3xl" />
 
-                        <div className="flex items-center justify-between relative z-10">
+                        <div className="flex items-start justify-between relative z-10 mb-8">
                             <div>
                                 <h3 className="text-2xl font-black text-gray-900 mb-2">SEO Health Score</h3>
                                 <p className="text-gray-500 max-w-sm leading-relaxed">
-                                    Your content is performing <span className="font-bold text-gray-900">{analysis.score > 80 ? 'excellently' : 'averagely'}</span>.
-                                    Follow the checklist below to improve rankings.
+                                    {analysis.score >= 80
+                                        ? '🎉 Excellent! Your content is well-optimized for search engines.'
+                                        : analysis.score >= 60
+                                            ? '⚡ Good progress! A few improvements can boost your rankings.'
+                                            : '🔧 Needs work. Follow the suggestions below to improve.'}
                                 </p>
                             </div>
-                            <div className="relative w-24 h-24 flex items-center justify-center">
-                                {/* Simple Circular Progress (SVG) */}
+                            <div className="relative w-28 h-28 flex items-center justify-center">
                                 <svg className="w-full h-full transform -rotate-90">
-                                    <circle cx="48" cy="48" r="40" stroke="#f3f4f6" strokeWidth="8" fill="transparent" />
+                                    <circle cx="56" cy="56" r="48" stroke="#f3f4f6" strokeWidth="10" fill="transparent" />
                                     <circle
-                                        cx="48" cy="48" r="40"
+                                        cx="56" cy="56" r="48"
                                         stroke={analysis.score > 80 ? '#10b981' : analysis.score > 50 ? '#eab308' : '#ef4444'}
-                                        strokeWidth="8"
+                                        strokeWidth="10"
                                         fill="transparent"
-                                        strokeDasharray={251.2}
-                                        strokeDashoffset={251.2 - (251.2 * analysis.score) / 100}
+                                        strokeDasharray={301.6}
+                                        strokeDashoffset={301.6 - (301.6 * analysis.score) / 100}
                                         strokeLinecap="round"
                                         className="transition-all duration-1000 ease-out"
                                     />
                                 </svg>
-                                <span className="absolute text-2xl font-black text-gray-900">{analysis.score}</span>
+                                <div className="absolute flex flex-col items-center">
+                                    <span className="text-3xl font-black text-gray-900">{analysis.score}</span>
+                                    <span className="text-xs text-gray-400 font-bold">/100</span>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Metrics Dashboard */}
+                        {analysis.metrics && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div className="flex items-center gap-2 text-gray-400 mb-1">
+                                        <FileText size={14} />
+                                        <span className="text-xs font-bold uppercase tracking-wider">Words</span>
+                                    </div>
+                                    <p className="text-2xl font-black text-gray-900">{analysis.metrics.wordCount}</p>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div className="flex items-center gap-2 text-gray-400 mb-1">
+                                        <Clock size={14} />
+                                        <span className="text-xs font-bold uppercase tracking-wider">Read Time</span>
+                                    </div>
+                                    <p className="text-2xl font-black text-gray-900">{analysis.metrics.readingTime}</p>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div className="flex items-center gap-2 text-gray-400 mb-1">
+                                        <List size={14} />
+                                        <span className="text-xs font-bold uppercase tracking-wider">Sections</span>
+                                    </div>
+                                    <p className="text-2xl font-black text-gray-900">{analysis.metrics.h2Count + analysis.metrics.h3Count}</p>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div className="flex items-center gap-2 text-gray-400 mb-1">
+                                        <Link2 size={14} />
+                                        <span className="text-xs font-bold uppercase tracking-wider">Links</span>
+                                    </div>
+                                    <p className="text-2xl font-black text-gray-900">{analysis.metrics.linkCount}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* 2. Audit Checklist */}
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="bg-gray-50/50 px-8 py-5 border-b border-gray-100 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-white rounded-lg border border-gray-100 shadow-sm text-gray-400">
-                                    <List size={18} />
-                                </div>
-                                <h3 className="font-bold text-gray-900">Optimization Checklist</h3>
-                            </div>
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{analysis.checks.filter((c: any) => c.status === 'pass').length} / {analysis.checks.length} PASSED</span>
-                        </div>
-                        <div className="divide-y divide-gray-50">
-                            {analysis.checks.map((check: any) => (
-                                <div key={check.id} className="p-6 flex items-start gap-5 hover:bg-gray-50/30 transition-colors group">
-                                    <div className="mt-1 flex-shrink-0">
-                                        {check.status === 'pass' && <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><CheckCircle size={14} strokeWidth={3} /></div>}
-                                        {check.status === 'warn' && <div className="w-6 h-6 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center"><AlertTriangle size={14} strokeWidth={3} /></div>}
-                                        {check.status === 'fail' && <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><XCircle size={14} strokeWidth={3} /></div>}
+                    {/* Conditional Content Based on Active Section */}
+                    {activeSection === 'overview' && (
+                        <>
+                            {/* Quick Stats */}
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="bg-green-50 border border-green-100 rounded-2xl p-5 text-center">
+                                    <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-3">
+                                        <CheckCircle size={20} />
                                     </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <h5 className={`font-bold text-sm ${check.status === 'pass' ? 'text-gray-900' : 'text-gray-900'}`}>{check.label}</h5>
-                                            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${check.status === 'pass' ? 'bg-green-50 text-green-600' :
-                                                check.status === 'warn' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600'
-                                                }`}>
-                                                {check.status === 'pass' ? 'Perfect' : check.status === 'warn' ? 'Improve' : 'Critical'}
-                                            </span>
+                                    <p className="text-3xl font-black text-green-700">{analysis.checks.filter((c: any) => c.status === 'pass').length}</p>
+                                    <p className="text-sm font-bold text-green-600">Passed</p>
+                                </div>
+                                <div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-5 text-center">
+                                    <div className="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center mx-auto mb-3">
+                                        <AlertTriangle size={20} />
+                                    </div>
+                                    <p className="text-3xl font-black text-yellow-700">{analysis.checks.filter((c: any) => c.status === 'warn').length}</p>
+                                    <p className="text-sm font-bold text-yellow-600">Warnings</p>
+                                </div>
+                                <div className="bg-red-50 border border-red-100 rounded-2xl p-5 text-center">
+                                    <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3">
+                                        <XCircle size={20} />
+                                    </div>
+                                    <p className="text-3xl font-black text-red-700">{analysis.checks.filter((c: any) => c.status === 'fail').length}</p>
+                                    <p className="text-sm font-bold text-red-600">Critical</p>
+                                </div>
+                            </div>
+
+                            {/* Top Priority Issues */}
+                            {suggestions.filter(s => s.priority === 'critical').length > 0 && (
+                                <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2 bg-red-100 rounded-lg text-red-600">
+                                            <Zap size={18} />
                                         </div>
-                                        <p className="text-sm text-gray-500 font-medium leading-relaxed">{check.message}</p>
+                                        <h3 className="font-bold text-red-800">Critical Issues to Fix</h3>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {suggestions.filter(s => s.priority === 'critical').slice(0, 3).map((s, i) => (
+                                            <div key={i} className="flex items-start gap-3 bg-white rounded-xl p-4 border border-red-100">
+                                                <ArrowRight size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <p className="text-sm font-bold text-gray-900">{s.action}</p>
+                                                    <p className="text-xs text-gray-500 mt-1">{s.reason}</p>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                            )}
+                        </>
+                    )}
 
-                    {/* 3. Keyword Gaps */}
-                    {gaps.length > 0 && (
+                    {activeSection === 'checklist' && (
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div className="bg-gray-50/50 px-8 py-5 border-b border-gray-100 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-white rounded-lg border border-gray-100 shadow-sm text-gray-400">
+                                        <List size={18} />
+                                    </div>
+                                    <h3 className="font-bold text-gray-900">Complete SEO Audit ({analysis.checks.length} checks)</h3>
+                                </div>
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                    {analysis.checks.filter((c: any) => c.status === 'pass').length} / {analysis.checks.length} PASSED
+                                </span>
+                            </div>
+                            <div className="divide-y divide-gray-50 max-h-[600px] overflow-y-auto">
+                                {analysis.checks.map((check: any) => (
+                                    <div key={check.id} className="p-6 hover:bg-gray-50/30 transition-colors group">
+                                        <div className="flex items-start gap-5">
+                                            <div className="mt-1 flex-shrink-0">
+                                                {check.status === 'pass' && <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><CheckCircle size={14} strokeWidth={3} /></div>}
+                                                {check.status === 'warn' && <div className="w-6 h-6 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center"><AlertTriangle size={14} strokeWidth={3} /></div>}
+                                                {check.status === 'fail' && <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><XCircle size={14} strokeWidth={3} /></div>}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <h5 className="font-bold text-sm text-gray-900">{check.label}</h5>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${check.impact === 'high' ? 'bg-purple-50 text-purple-600' :
+                                                                check.impact === 'medium' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'
+                                                            }`}>
+                                                            {check.impact} impact
+                                                        </span>
+                                                        <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${check.status === 'pass' ? 'bg-green-50 text-green-600' :
+                                                                check.status === 'warn' ? 'bg-yellow-50 text-yellow-600' : 'bg-red-50 text-red-600'
+                                                            }`}>
+                                                            {check.status === 'pass' ? 'Perfect' : check.status === 'warn' ? 'Improve' : 'Critical'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm text-gray-500 font-medium leading-relaxed">{check.message}</p>
+                                                {check.suggestion && check.status !== 'pass' && (
+                                                    <div className="mt-3 flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg p-3">
+                                                        <Lightbulb size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                                                        <p className="text-xs text-blue-700 font-medium">{check.suggestion}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeSection === 'suggestions' && (
+                        <div className="space-y-6">
+                            {/* Prioritized Suggestions */}
+                            {['critical', 'important', 'optional'].map(priority => {
+                                const items = suggestions.filter(s => s.priority === priority);
+                                if (items.length === 0) return null;
+
+                                return (
+                                    <div key={priority} className={`rounded-2xl border p-6 ${priority === 'critical' ? 'bg-red-50 border-red-200' :
+                                            priority === 'important' ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'
+                                        }`}>
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className={`p-2 rounded-lg ${priority === 'critical' ? 'bg-red-100 text-red-600' :
+                                                    priority === 'important' ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-200 text-gray-500'
+                                                }`}>
+                                                {priority === 'critical' ? <Zap size={18} /> : priority === 'important' ? <Target size={18} /> : <Lightbulb size={18} />}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 capitalize">{priority} Improvements</h3>
+                                                <p className="text-xs text-gray-500">{items.length} action{items.length > 1 ? 's' : ''} recommended</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {items.map((s, i) => (
+                                                <div key={i} className="flex items-start gap-3 bg-white rounded-xl p-4 border border-gray-100">
+                                                    <ArrowRight size={16} className={`mt-0.5 flex-shrink-0 ${priority === 'critical' ? 'text-red-500' :
+                                                            priority === 'important' ? 'text-yellow-500' : 'text-gray-400'
+                                                        }`} />
+                                                    <div>
+                                                        <p className="text-sm font-bold text-gray-900">{s.action}</p>
+                                                        <p className="text-xs text-gray-500 mt-1">{s.reason}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {suggestions.length === 0 && (
+                                <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
+                                    <CheckCircle size={48} className="text-green-500 mx-auto mb-4" />
+                                    <h3 className="text-xl font-bold text-green-800 mb-2">Excellent Work!</h3>
+                                    <p className="text-green-600">Your content passes all SEO checks. Keep up the great work!</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Keyword Gaps */}
+                    {gaps.length > 0 && activeSection === 'overview' && (
                         <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl shadow-lg shadow-blue-200 text-white overflow-hidden relative">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full translate-x-20 -translate-y-20 blur-3xl" />
 
                             <div className="p-8 relative z-10">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
-                                        <BarChart2 size={20} className="text-white" />
+                                        <TrendingUp size={20} className="text-white" />
                                     </div>
-                                    <h3 className="font-bold text-lg">Keyword Opportunities</h3>
+                                    <div>
+                                        <h3 className="font-bold text-lg">Keyword Opportunities</h3>
+                                        <p className="text-blue-200 text-xs">Based on competitor analysis</p>
+                                    </div>
                                 </div>
 
                                 <p className="text-blue-100 text-sm mb-6 font-medium leading-relaxed opacity-90">
-                                    Our AI detected these high-impact keywords in top-ranking competitor articles. Adding them could boost your visibility.
+                                    These high-impact keywords appear in top-ranking competitor articles but are missing from your content.
                                 </p>
 
                                 <div className="flex flex-wrap gap-2.5">
@@ -174,11 +368,11 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                 {/* Right Column: SERP Preview & Schema */}
                 <div className="space-y-8">
 
-                    {/* 4. SERP Preview */}
+                    {/* SERP Preview */}
                     <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                         <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                             <Search size={18} className="text-gray-400" />
-                            <h3 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Search Preview</h3>
+                            <h3 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Google Preview</h3>
                         </div>
                         <div className="p-6">
                             <div className="font-sans bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
@@ -190,35 +384,31 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                                         <span className="font-medium text-[#202124] leading-none">BeyondChats</span>
                                         <span className="text-[#5f6368] text-[10px] truncate">https://beyondchats.com › blog › articles</span>
                                     </div>
-                                    <div className="ml-auto text-gray-400">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" /></svg>
-                                    </div>
                                 </div>
                                 <div className="text-xl text-[#1a0dab] hover:underline truncate font-medium mb-1">
                                     {article.title}
                                 </div>
                                 <div className="text-sm text-[#4d5156] line-clamp-2 leading-relaxed">
-                                    {article.published_at} — {article.excerpt || "Learn more about this topic with our in-depth analysis and expert insights generated by AI."}
+                                    {article.excerpt || "Learn more about this topic with AI-powered insights..."}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* 5. Heading Structure */}
+                    {/* Heading Structure */}
                     <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                         <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                             <List size={18} className="text-gray-400" />
-                            <h3 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Structure Map</h3>
+                            <h3 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Content Outline</h3>
                         </div>
-                        <div className="p-6 max-h-[350px] overflow-y-auto custom-scrollbar">
+                        <div className="p-6 max-h-[300px] overflow-y-auto custom-scrollbar">
                             <ul className="space-y-3 relative">
                                 {headings.length === 0 && <li className="text-gray-400 italic text-sm">No headings detected.</li>}
-                                {headings.map((h: any, i: number) => (
-                                    <li key={h.id} className="text-sm text-gray-600 truncate flex items-center gap-3 group relative" style={{ paddingLeft: `${(h.level - 1) * 16}px` }}>
-                                        {i !== headings.length - 1 && <div className="absolute left-[7px] top-6 bottom-[-12px] w-px bg-gray-100" style={{ left: `${(h.level - 1) * 16 + 7}px` }} />}
+                                {headings.map((h: any) => (
+                                    <li key={h.id} className="text-sm text-gray-600 truncate flex items-center gap-3 group" style={{ paddingLeft: `${(h.level - 1) * 16}px` }}>
                                         <span className={`flex-shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded border ${h.level === 1 ? 'bg-purple-50 text-purple-700 border-purple-100' :
-                                            h.level === 2 ? 'bg-gray-100 text-gray-700 border-gray-200' :
-                                                'bg-white text-gray-400 border-gray-100'
+                                                h.level === 2 ? 'bg-gray-100 text-gray-700 border-gray-200' :
+                                                    'bg-white text-gray-400 border-gray-100'
                                             }`}>H{h.level}</span>
                                         <span className="group-hover:text-purple-600 transition-colors">{h.text}</span>
                                     </li>
@@ -227,7 +417,7 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                         </div>
                     </div>
 
-                    {/* 6. Schema Generator */}
+                    {/* Schema Generator */}
                     <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                         <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -236,19 +426,13 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
                             </div>
                             <button onClick={copySchema} className="text-xs flex items-center gap-1.5 font-bold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors border border-purple-100">
                                 {copied ? <CheckCircle size={14} /> : <Clipboard size={14} />}
-                                {copied ? 'Copied' : 'Copy Code'}
+                                {copied ? 'Copied' : 'Copy'}
                             </button>
                         </div>
                         <div className="relative group">
-                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 pointer-events-none group-hover:hidden" />
-                            <pre className="bg-[#1e1e1e] text-gray-300 text-[10px] p-6 overflow-x-auto font-mono custom-scrollbar h-48">
+                            <pre className="bg-[#1e1e1e] text-gray-300 text-[10px] p-6 overflow-x-auto font-mono custom-scrollbar h-40">
                                 {JSON.stringify(schema, null, 2)}
                             </pre>
-                            <div className="absolute bottom-4 right-4 hidden group-hover:block animate-in fade-in slide-in-from-bottom-2">
-                                <button onClick={copySchema} className="p-2 bg-white text-gray-900 rounded-lg shadow-xl hover:scale-105 transition-transform">
-                                    <Clipboard size={16} />
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -257,7 +441,6 @@ const SeoOptimizerTab: React.FC<SeoTabProps> = ({ article, content }) => {
     );
 };
 
-// Mini Component for SVG Plus
 const PlusIcon = () => (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="5" x2="12" y2="19"></line>

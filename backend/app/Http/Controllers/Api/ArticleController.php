@@ -21,37 +21,7 @@ class ArticleController extends Controller
         );
     }
 
-    public function enhance(
-        $id,
-        \App\Services\GoogleSearchService $searchService,
-        \App\Services\GeminiService $geminiService
-    ) {
-        $article = Article::find($id);
 
-        if (!$article) {
-            return response()->json(['message' => 'Article not found'], 404);
-        }
-
-        try {
-            // 1. Search References
-            $references = $searchService->searchAndScrape($article->title);
-
-            // 2. Enhance with Gemini
-            $enhancedData = $geminiService->enhanceArticle($article->content, $references);
-
-            // 3. Save
-            $article->enhanced_version = $enhancedData;
-            $article->save();
-
-            return response()->json([
-                'message' => 'Article enhanced successfully',
-                'article' => $article
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Enhancement failed: ' . $e->getMessage()], 500);
-        }
-    }
 
     public function show($id)
     {

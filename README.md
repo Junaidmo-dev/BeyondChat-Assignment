@@ -114,3 +114,7 @@ npm run dev
 - `/backend` - Laravel API & Scraper
 - `/enhancer` - Node.js Intelligence Script
 - `/frontend` - Next.js User Interface
+
+## 🌐 Live Link
+- **Frontend & Admin:** [https://beyondchats-assignment.railway.app](https://beyondchats-assignment.railway.app)
+- **API Documentation:** [https://beyondchats-assignment.railway.app/api/documentation](https://beyondchats-assignment.railway.app/api/documentation)
