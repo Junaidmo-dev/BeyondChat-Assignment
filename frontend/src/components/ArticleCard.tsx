@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getApiUrl } from '@/lib/utils';
 import { Calendar, Sparkles, Loader2, Zap } from 'lucide-react';
 import { Article } from '@/data/mockArticles';
 import { useState } from 'react';
@@ -15,7 +16,7 @@ export default function ArticleCard({ article, onEnhance }: { article: Article, 
 
         setIsEnhancing(true);
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+            const apiUrl = getApiUrl();
             const res = await fetch(`${apiUrl}/articles/${article.id}/enhance`, {
                 method: 'POST'
             });

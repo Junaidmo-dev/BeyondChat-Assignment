@@ -7,7 +7,7 @@ import { Article } from '@/data/mockArticles';
 import { Calendar, Globe, Clock, ArrowLeft, RefreshCw, CheckCircle, Copy, Linkedin, Twitter, Facebook, Sparkles, Sliders } from 'lucide-react';
 import Link from 'next/link';
 import SeoOptimizerTab from '@/components/SeoOptimizerTab';
-import { cn } from '@/lib/utils';
+import { cn, getApiUrl } from '@/lib/utils';
 
 // Helper component for social icons
 const SocialButton = ({ icon: Icon }: { icon: any }) => (
@@ -28,7 +28,7 @@ export default function ArticleDetailPage() {
     useEffect(() => {
         if (!id) return;
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+        const apiUrl = getApiUrl();
         fetch(`${apiUrl}/articles/${id}`)
             .then(res => res.json())
             .then(data => {

@@ -15,14 +15,14 @@ import {
   Plus,
   Search
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getApiUrl } from '@/lib/utils';
 
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+    const apiUrl = getApiUrl();
     fetch(`${apiUrl}/articles`)
       .then(res => res.json())
       .then(data => {
