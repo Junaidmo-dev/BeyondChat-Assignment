@@ -18,24 +18,10 @@ async function enhancePipeline() {
         // 1. Fetch articles needing enhancement
         const { data: response } = await axios.get(`${API_BASE_URL}/articles`);
         const articles = response.data || [];
-        // Fetch articles that are either new OR have "short" content (less than 8000 chars / ~1200 words)
-        const pendingArticles = articles.filter(a => {
-            if (!a.enhanced_version) return true;
 
-            let content = "";
-            // Handle case where enhanced_version is returned as a string by Laravel
-            if (typeof a.enhanced_version === 'string') {
-                try {
-                    const parsed = JSON.parse(a.enhanced_version);
-                    content = parsed.content || "";
-                } catch (e) { content = ""; }
-            } else {
-                content = a.enhanced_version.content || "";
-            }
-
-            // Force redo if content is too short (bad quality)
-            return content.length < 8000;
-        }).slice(0, 2);
+        // NUCLEAR OPTION: Force process the first 5 articles no matter what
+        const pendingArticles = articles.slice(0, 5);
+        console.log(`☢️ NUCLEAR MODE: Forcing sync/update on ${pendingArticles.length} articles.`);
 
         if (pendingArticles.length === 0) {
             console.log('✅ No pending articles found.');
@@ -49,7 +35,7 @@ async function enhancePipeline() {
             const searchResults = await getSearchResults(article.title);
             console.log(`🔍 Found ${searchResults.length} relevant external sources.`);
 
-            // 3. Scrape Top 2 Links
+            // 3. Scrape Top 3 Links
             const references = [];
             for (const result of searchResults.slice(0, 3)) {
                 console.log(`🌐 Scraping: ${result.link}`);
