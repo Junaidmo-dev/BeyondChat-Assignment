@@ -34,7 +34,7 @@ async function enhancePipeline() {
 
             // 3. Scrape Top 2 Links
             const references = [];
-            for (const result of searchResults.slice(0, 2)) {
+            for (const result of searchResults.slice(0, 3)) {
                 console.log(`🌐 Scraping: ${result.link}`);
                 const content = await scrapeArticleContent(result.link);
                 if (content) {
@@ -93,7 +93,7 @@ async function scrapeArticleContent(url) {
         const { data } = await axios.get(url, { timeout: 5000 });
         const $ = cheerio.load(data);
         $('script, style, nav, footer, header').remove();
-        return $('p').text().substring(0, 3000);
+        return $('p').text().substring(0, 20000);
     } catch (err) {
         return null;
     }
@@ -101,34 +101,36 @@ async function scrapeArticleContent(url) {
 
 async function getAIEnhancement(original, refs) {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const refContext = refs.map(r => `Title: ${r.title}\nContent: ${r.content.substring(0, 500)}`).join('\n\n');
+    const refContext = refs.map(r => `Title: ${r.title}\nContent: ${r.content.substring(0, 10000)}`).join('\n\n');
+
 
     const prompt = `
-        You are an SEO expert. Rewrite this article to be more engaging and search-optimized.
-        Make the formatting similar to the high-ranking references provided.
-        
-        Original Article: ${original}
-        
-        References:
+        You are an expert SEO content strategist and writer. Your goal is to create a comprehensive, deep-dive article that significantly outranks the provided references.
+
+        Original Article Topic: ${original}
+
+        REFERENCE MATERIALS (Use these to expand depth, but do not plagiarize):
         ${refContext}
-        
-        Requirements:
-        1. Use semantic HTML (h2, h3, b, i).
-        2. Improve flow and depth.
-        3. Add a summary.
-        4. Add a "Sources" section citing the references.
-        5. Maintain a word count range similar to the original article (do not make it significantly longer).
-        
-        Output JSON: {
-            "content": "HTML_HERE",
-            "summary": "SHORT_TEXT",
+
+        INSTRUCTIONS:
+        1. **Expansion & Depth**: The enhanced article MUST be a detailed, long-form piece (aim for 1500+ words if possible). Expand on every point. Use the references to add statistics, examples, case studies, and nuance.
+        2. **Structure**: Use a proper hierarchy (H2, H3, H4).
+        3. **Formatting**: Use bolding for key terms, bullet points for readability, and blockquotes for emphasis.
+        4. **Summary**: Provide a concise, engaging summary at the beginning.
+        5. **Sources**: Include a "Sources & References" section at the very bottom, citing the external URLs provided.
+        6. **Tone**: Professional, authoritative, yet engaging.
+
+        OUTPUT FORMAT (JSON ONLY):
+        {
+            "content": "<p>Your long-form HTML content here...</p>",
+            "summary": "A roughly 2-sentence summary...",
             "seo_analysis": {
                 "score": 0-100,
                 "checklist": [
-                    { "label": "Title Optimization", "status": "pass|fail|warn", "message": "Reasoning..." },
-                    { "label": "Content Depth", "status": "pass|fail|warn", "message": "Reasoning..." }
+                    { "label": "Word Count > 1500", "status": "pass|fail", "message": "..." },
+                    { "label": "Keyword Usage", "status": "pass|fail", "message": "..." }
                 ],
-                "keyword_gaps": ["missed_keyword_1", "missed_keyword_2"]
+                "keyword_gaps": []
             }
         }
     `;
@@ -156,4 +158,19 @@ async function getAIEnhancement(original, refs) {
     return null;
 }
 
-enhancePipeline();
+
+const POLL_INTERVAL = 5000; // 5 seconds
+
+async function runService() {
+    console.log('🚀 SEO Enhancer Service Started (Continuous Mode - 5s polling)');
+    while (true) {
+        try {
+            await enhancePipeline();
+        } catch (error) {
+            console.error('💥 Critical Service Error:', error);
+        }
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+    }
+}
+
+runService();
