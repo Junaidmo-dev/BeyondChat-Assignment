@@ -22,7 +22,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/v1/articles')
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+    fetch(`${apiUrl}/articles`)
       .then(res => res.json())
       .then(data => {
         setArticles(data.data || []);
