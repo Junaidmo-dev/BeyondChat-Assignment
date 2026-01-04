@@ -1,20 +1,17 @@
 # Nixpacks configuration for Railway deployment
 [phases.setup]
-nixPkgs = ["php83", "php83Extensions.pdo_sqlite", "php83Extensions.mbstring", "php83Extensions.openssl", "php83Extensions.tokenizer", "php83Extensions.xml", "php83Extensions.ctype", "php83Extensions.fileinfo", "php83Extensions.dom", "php83Extensions.curl"]
+nixPkgs = ["php83", "php83Extensions.pdo_mysql", "php83Extensions.pdo_sqlite", "php83Extensions.mbstring", "php83Extensions.openssl", "php83Extensions.tokenizer", "php83Extensions.xml", "php83Extensions.ctype", "php83Extensions.fileinfo", "php83Extensions.dom", "php83Extensions.curl"]
 
 [phases.install]
 cmds = ["composer install --optimize-autoloader --no-dev"]
 
 [phases.build]
 cmds = [
-  "mkdir -p database",
-  "touch database/database.sqlite",
   "php artisan config:cache",
-  "php artisan route:cache",
-  "php artisan migrate --force",
-  "php artisan db:seed --force"
+  "php artisan route:cache"
 ]
 
 [start]
-cmd = "php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
+cmd = "php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
+
 
